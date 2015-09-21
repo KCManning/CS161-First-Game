@@ -1,0 +1,586 @@
+//-----------------------------------------------------------------------------
+//Updated with a boss fight!!
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//Handles the graphics and game logics
+//-----------------------------------------------------------------------------
+void sSprite()
+{
+	Graphics graCanvas(hdc);
+
+	//------------------------------------------------------------------------------------------------
+	//Drawing objects, buffers, and bitmaps.
+	//------------------------------------------------------------------------------------------------
+	Pen penGround(Color(cintFULL_OPACITY, NULL, NULL, NULL), 3);
+	SolidBrush bruBolt(Color(cintFULL_OPACITY, NULL, NULL, NULL));
+
+	Bitmap bmpBGBuffer(rect.right - rect.left, rect.bottom - rect.top);
+	Graphics graBGBuffer(&bmpBGBuffer);
+	Bitmap bmpBGOne(L"..\\Assets\\TownBackground.png");
+
+	Bitmap bmpBGTwo(L"..\\Assets\\TownBackgroundInverted.png");
+
+	Color clrSprite;
+
+	Bitmap bmpSpriteBuffer(100,100);
+	Graphics graSpriteBuffer(&bmpSpriteBuffer);
+	Bitmap bmpSprite(100, 100);
+	Bitmap bmpSpriteSheet(L"..\\Assets\\DarklingSpriteSheet.png");
+
+	Bitmap bmpEnemyBuffer(100, 100);
+	Graphics graEnemyBuffer(&bmpEnemyBuffer);
+	Bitmap bmpEnemy(100, 100);
+	Bitmap bmpEnemySpriteSheet(L"..\\Assets\\ChubbySuitSpriteSheet.png");
+
+	Bitmap bmpBossBuffer(200, 200);
+	Graphics graBossBuffer(&bmpBossBuffer);
+	Bitmap bmpBoss(200, 200);
+	Bitmap bmpBossSpriteSheet(L"..\\Assets\\BossSpriteSheet.png");
+
+	Bitmap bmpPillarBuffer(100, 200);
+	Graphics graPillarBuffer(&bmpPillarBuffer);
+	Bitmap bmpPillar(100, 200);
+	Bitmap bmpPillarSpriteSheet(L"..\\Assets\\TowerSpriteSheet.png");
+
+	Bitmap bmpHealthBuffer(150, 50);
+	Graphics graHealthBuffer(&bmpHealthBuffer);
+	Bitmap bmpHealth(L"..\\Assets\\Health.png");
+
+	//------------------------------------------------------------------------------------------------
+	//Drawing system for 'Darkness' tracking
+	//------------------------------------------------------------------------------------------------
+	PointF pntUpperLeft(rect.right - 170, NULL);
+	PointF pntBottomRight(rect.right - cintPADDING, 40);
+
+	LinearGradientBrush bruScore(pntUpperLeft, pntBottomRight,
+		Color(cintFULL_OPACITY, NULL, NULL, NULL), Color(cintFULL_OPACITY, 100, 100, 100));
+	Font fntScore(L"Comic Sans MS", 24);
+	string strScore = "Darkness: \n";
+	strScore += to_string(intScore);
+	wstring widestr = wstring(strScore.begin(), strScore.end());
+	const wchar_t* szScore = widestr.c_str();
+
+	//------------------------------------------------------------------------------------------------
+	//Sounds
+	//------------------------------------------------------------------------------------------------
+	const char* soundAttack = ("..\\Assets\\TakeThat.wav");
+	const char* soundHit = ("..\\Assets\\PlayerHit.wav");
+	const char* soundDefeat = ("..\\Assets\\EnemyTwoDeath.wav");
+	const char* soundEnemyHit = ("..\\Assets\\EnemyHit.wav");
+	const char* soundEnemyOneDeath = ("..\\Assets\\EnemyOneDeath.wav");
+	const char* soundEnemyTwoDeath = ("..\\Assets\\EnemyTwoDeath.wav");
+
+	graBGBuffer.Clear(Color(cintFULL_OPACITY, cintFULL_OPACITY, cintFULL_OPACITY, cintFULL_OPACITY));
+
+	//------------------------------------------------------------------------------------------------
+	//Background 'slide' effect
+	//------------------------------------------------------------------------------------------------
+	if(rectSprite.getX() >= 660 && shtScreen < 4)
+	{
+		booSlideForward = TRUE;
+	}
+	else if(rectSprite.getX() <= 40 && shtScreen != NULL)
+	{
+		booSlideBackward = TRUE;
+	}
+
+
+	if(booSlideForward)
+	{
+		if(shtScreen % 2 == NULL)
+		{
+			graBGBuffer.DrawImage(&bmpBGOne, rectSprite.getX(), 150);
+			graBGBuffer.DrawImage(&bmpBGTwo, rectSprite.getX() - bmpBGOne.GetWidth(), 150);
+		}
+		else
+		{
+			graBGBuffer.DrawImage(&bmpBGTwo, rectSprite.getX(), 150);
+			graBGBuffer.DrawImage(&bmpBGOne, rectSprite.getX() - bmpBGTwo.GetWidth(), 150);
+		}
+		if(rectSprite.getX() > 160)
+			rectSprite.setX(rectSprite.getX() - 100);
+		else
+			rectSprite.setX(60);
+
+		if(rectSprite.getX() <= 60)
+		{
+			shtScreen++;
+			booSlideForward = FALSE;
+		}
+	}
+	else if(booSlideBackward)
+	{
+		if(shtScreen % 2 == NULL)
+		{
+			graBGBuffer.DrawImage(&bmpBGOne, rectSprite.getX(), 150);
+			graBGBuffer.DrawImage(&bmpBGTwo, rectSprite.getX() - bmpBGOne.GetWidth(), 150);
+		}
+		else
+		{
+			graBGBuffer.DrawImage(&bmpBGTwo, rectSprite.getX(), 150);
+			graBGBuffer.DrawImage(&bmpBGOne, rectSprite.getX() - bmpBGTwo.GetWidth(), 150);
+		}
+
+		if(rectSprite.getX() > 540)
+			rectSprite.setX(rectSprite.getX() + 100);
+		else
+			rectSprite.setX(640);
+
+		if(rectSprite.getX() >= 640)
+		{
+			shtScreen--;
+			booSlideBackward = FALSE;
+		}
+	}
+	else
+	{
+		if(shtScreen % 2 == NULL)
+		{
+			graBGBuffer.DrawImage(&bmpBGOne, NULL, 150);
+		}
+		else
+		{
+			graBGBuffer.DrawImage(&bmpBGTwo, NULL, 150);
+		}
+
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//Sets Avatars attack status
+	//------------------------------------------------------------------------------------------------
+	if(shtAttack == 2 && !booAttacking)
+	{
+		shtAttack = 1;
+		booAttacking = TRUE;
+	}
+	else if(shtAttack == 1 && booAttacking)
+	{
+		shtAttack = 2;
+		if(!booProjectile && intScore >= cintHEIGHT)
+		{
+			booProjectile = TRUE;
+			intScore -= cintHEIGHT;
+
+			PlaySound(soundAttack, NULL, SND_ASYNC);
+
+			projectile.setW(cintPADDING);
+			projectile.setH(5);
+			projectile.setY(rectSprite.getY() + 50);
+
+			if(rectSprite.getF() == 1)
+				projectile.setX(rectSprite.getX() + 100);
+			else
+				projectile.setX(rectSprite.getX());
+
+		}
+	}
+	else if(shtAttack == 2 && booAttacking)
+	{
+		shtAttack = 1;
+		booAttacking = FALSE;
+	}
+	else if(shtAttack == 1 && !booAttacking)
+	{
+		shtAttack = NULL;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//Creates the avatar's animations
+	//------------------------------------------------------------------------------------------------
+	for(int i = (shtAttack  * 100); i < (shtAttack  * 100) + 100; i++)
+	{
+		for(int j = (rectSprite.getF() * 100); j < (rectSprite.getF() * 100) + 100; j++)
+		{
+			bmpSpriteSheet.GetPixel(i, j, &clrSprite);
+			bmpSpriteBuffer.SetPixel(i - (shtAttack  * 100), j - (rectSprite.getF() * 100), clrSprite);
+		}
+	}
+
+	graSpriteBuffer.DrawImage(&bmpSprite, NULL, NULL, rectSprite.getW(), rectSprite.getH());
+
+	graBGBuffer.DrawImage(&bmpSpriteBuffer, rectSprite.getX(), rectSprite.getY(), rectSprite.getH(), rectSprite.getW());
+
+
+	//------------------------------------------------------------------------------------------------
+	//Projectile control
+	//------------------------------------------------------------------------------------------------
+	if(booProjectile)
+	{
+		//------------------------------------------------------------------------------------------------
+		//Projectile launch
+		//------------------------------------------------------------------------------------------------
+		graBGBuffer.FillRectangle(&bruBolt, projectile.getX(), projectile.getY(),
+			projectile.getW(), projectile.getH());
+
+		if(rectSprite.getF() == 1)
+			projectile.setX(projectile.getX() + cintBORDER_PADDING);
+		else
+			projectile.setX(projectile.getX() - cintBORDER_PADDING);
+
+		if(projectile.getX() > cintPNL_WIDTH || projectile.getX() < NULL)
+			booProjectile = FALSE;
+
+		//------------------------------------------------------------------------------------------------
+		//Projectile collision
+		//------------------------------------------------------------------------------------------------
+		if(projectile.intersects(enemyOne) && shtScreen == 1)
+		{
+			if(booEnemyOne)
+			{
+				enemyOne.setHealth(enemyOne.getHealth() - 1);
+				if(enemyOne.getHealth() < 1)
+					PlaySound(soundEnemyOneDeath, NULL, SND_ASYNC);
+				else
+					PlaySound(soundEnemyHit, NULL, SND_ASYNC);
+				booProjectile = FALSE;
+			}
+		}
+		else if(projectile.intersects(enemyTwo) && shtScreen == 2)
+		{
+			if(booEnemyTwo)
+			{
+				enemyTwo.setHealth(enemyTwo.getHealth() - 1);
+				if(enemyTwo.getHealth() < 1)
+					PlaySound(soundEnemyTwoDeath, NULL, SND_ASYNC);
+				else
+					PlaySound(soundEnemyHit, NULL, SND_ASYNC);
+				booProjectile = FALSE;
+			}
+
+		}
+		else if(projectile.intersects(enemyBoss) && shtScreen == 3)
+		{
+			if(booEnemyBoss)
+			{
+				enemyBoss.setHealth(enemyBoss.getHealth() - 1);
+				booProjectile = FALSE;
+			}
+		}
+		else if(projectile.intersects(rectSprite))
+		{
+			booProjectile = FALSE;
+		}
+		else if(projectile.intersects(pillar) && shtScreen == 4)
+		{
+			booProjectile = FALSE;
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//Enemy Controls
+	//------------------------------------------------------------------------------------------------
+	switch(shtScreen)
+	{
+	case 1:
+		if(booEnemyOne && enemyOne.getHealth() < 1)
+		{
+			booEnemyOne = FALSE;
+			intScore += cintPNL_WIDTH;
+		}
+
+		if(booEnemyOne)
+		{
+			graEnemyBuffer.Clear(Color(cintFULL_OPACITY, cintFULL_OPACITY, cintFULL_OPACITY, cintFULL_OPACITY));
+
+			if(!(enemyOne.getX() % 2))
+				shtStepping = 0;
+			else
+				shtStepping = 1;
+
+			//------------------------------------------------------------------------------------------------
+			//Enemy One Animation
+			//------------------------------------------------------------------------------------------------
+			for(int i = (shtStepping * 100); i < (shtStepping * 100) + 100; i++)
+			{
+				for(int j = (enemyOne.getF() * 100); j < (enemyOne.getF() * 100) + 100; j++)
+				{
+					bmpEnemySpriteSheet.GetPixel(i, j, &clrSprite);
+
+					if(clrSprite.GetRed() == cintFULL_OPACITY &&
+						clrSprite.GetGreen() == NULL && clrSprite.GetBlue() == cintFULL_OPACITY)
+						bmpEnemy.SetPixel(i - (shtStepping * 100), j - (enemyOne.getF() * 100),
+						Color(1, NULL, NULL, NULL));
+					else
+						bmpEnemy.SetPixel(i - (shtStepping * 100), j - (enemyOne.getF() * 100), clrSprite);
+				}
+			}
+
+
+			graEnemyBuffer.DrawImage(&bmpEnemy, NULL, NULL, enemyOne.getW(), enemyOne.getH());
+
+			graBGBuffer.DrawImage(&bmpEnemyBuffer, enemyOne.getX(), enemyOne.getY(),
+				enemyOne.getW(), enemyOne.getH());
+
+			//------------------------------------------------------------------------------------------------
+			//Enemy One movement patterns
+			//------------------------------------------------------------------------------------------------
+			if(enemyOne.getX() >= 700)
+				enemyOne.setF(NULL);
+			else if(enemyOne.getX() <= 200)
+				enemyOne.setF(1);
+
+			if(enemyOne.getF() == 1)
+				enemyOne.setX(enemyOne.getX() + 7);
+			else if(enemyOne.getF() == NULL)
+				enemyOne.setX(enemyOne.getX() - 7);
+
+			//------------------------------------------------------------------------------------------------
+			//Enemy One Collision
+			//------------------------------------------------------------------------------------------------
+			if(enemyOne.intersects(rectSprite) && rectSprite.getHealth() != NULL)
+			{
+				rectSprite.setHealth(rectSprite.getHealth() - 1);
+				rectSprite.setX(rectSprite.getX() - cintBUTTON_LENGTH);
+				rectSprite.setY(rectSprite.getY() - 35);
+				if(rectSprite.getHealth() < 0)
+					PlaySound(soundHit, NULL, SND_ASYNC);
+			}
+		}
+
+		break;
+
+	case 2:
+		if(booEnemyTwo && enemyTwo.getHealth() < 1)
+		{
+			booEnemyTwo = FALSE;
+			intScore += cintPNL_WIDTH;
+		}
+
+		if(booEnemyTwo)
+		{
+			graEnemyBuffer.Clear(Color(cintFULL_OPACITY, cintFULL_OPACITY, cintFULL_OPACITY, cintFULL_OPACITY));
+
+			if(!(enemyTwo.getX() % 2))
+				shtStepping = NULL;
+			else
+				shtStepping = 1;
+
+			//------------------------------------------------------------------------------------------------
+			//Enemy Two Animation
+			//------------------------------------------------------------------------------------------------
+			for(int i = (shtStepping * 100); i < (shtStepping * 100) + 100; i++)
+			{
+				for(int j = (enemyTwo.getF() * 100); j < (enemyTwo.getF() * 100) + 100; j++)
+				{
+					bmpEnemySpriteSheet.GetPixel(i, j, &clrSprite);
+					if(clrSprite.GetRed() == cintFULL_OPACITY && clrSprite.GetGreen() == NULL &&
+						clrSprite.GetBlue() == cintFULL_OPACITY)
+						bmpEnemy.SetPixel(i - (shtStepping * 100), j - (enemyTwo.getF() * 100),
+						Color(1, cintFULL_OPACITY, NULL, cintFULL_OPACITY));
+					else
+						bmpEnemy.SetPixel(i - (shtStepping * 100), j - (enemyTwo.getF() * 100), clrSprite);
+				}
+			}
+
+			graEnemyBuffer.DrawImage(&bmpEnemy, NULL, NULL, enemyTwo.getH(), enemyTwo.getW());
+
+			graBGBuffer.DrawImage(&bmpEnemyBuffer, enemyTwo.getX(), enemyTwo.getY(),
+				enemyTwo.getH(), enemyTwo.getW());
+
+			//------------------------------------------------------------------------------------------------
+			//Enemy Two movement patterns
+			//------------------------------------------------------------------------------------------------
+			if(enemyTwo.getX() >= 700)
+				enemyTwo.setF(NULL);
+			else if(enemyTwo.getX() <= 200)
+				enemyTwo.setF(1);
+
+			if(enemyTwo.getF() == 1)
+				enemyTwo.setX(enemyTwo.getX() + 7);
+			else if(enemyTwo.getF() == NULL)
+				enemyTwo.setX(enemyTwo.getX() - 7);
+
+			//------------------------------------------------------------------------------------------------
+			//Enemy Two Collision
+			//------------------------------------------------------------------------------------------------
+			if(enemyTwo.intersects(rectSprite) && rectSprite.getHealth() != NULL)
+			{
+				rectSprite.setHealth(rectSprite.getHealth() - 1);
+				rectSprite.setX(rectSprite.getX() - cintBUTTON_LENGTH);
+				rectSprite.setY(rectSprite.getY() - 35);
+				if(rectSprite.getHealth() < 0)
+					PlaySound(soundHit, NULL, SND_ASYNC);
+			}
+		}
+		break;
+
+	case 3:
+		if(booEnemyBoss && enemyBoss.getHealth() < 1)
+		{
+			booEnemyBoss = FALSE;
+			intScore += 5000;
+		}
+
+		if(booEnemyBoss)
+		{
+			graBossBuffer.Clear(Color(cintFULL_OPACITY, cintFULL_OPACITY, cintFULL_OPACITY, cintFULL_OPACITY));
+
+			//------------------------------------------------------------------------------------------------
+			//Boss Animation
+			//------------------------------------------------------------------------------------------------
+			if(shtBossAttack == 0 && !booBossProjectile)
+			{
+				booBossAttacking = TRUE;
+				booBossProjectile = TRUE;
+				bossProjectile.setX(enemyBoss.getX());
+				shtBossAttack = 1;
+			}
+			else if(shtBossAttack == 1)
+			{
+				if(booBossAttacking)
+					shtBossAttack = 2;
+				else
+					shtBossAttack = 0;
+			}
+			else if(shtBossAttack == 2)
+			{
+				if(booBossAttacking)
+					shtBossAttack = 3;
+				else
+					shtBossAttack = 1;
+			}
+			else if(shtBossAttack == 3)
+			{
+				shtBossAttack =2 ;
+				booBossAttacking = FALSE;
+			}
+
+
+
+
+			for(int i = (shtBossAttack * 200); i < (shtBossAttack * 200) + 200; i++)
+			{
+				for(int j = 0; j < 200; j++)
+				{
+					bmpBossSpriteSheet.GetPixel(i, j, &clrSprite);
+
+					if(clrSprite.GetRed() == cintFULL_OPACITY &&
+						clrSprite.GetGreen() == NULL && clrSprite.GetBlue() == cintFULL_OPACITY)
+						bmpBoss.SetPixel(i - (shtBossAttack * 200), j,
+						Color(1, NULL, NULL, NULL));
+					else
+						bmpBoss.SetPixel(i - (shtBossAttack * 200), j, clrSprite);
+				}
+			}
+
+
+			graBossBuffer.DrawImage(&bmpBoss, NULL, NULL, enemyBoss.getW(), enemyBoss.getH());
+
+			graBGBuffer.DrawImage(&bmpBossBuffer, enemyBoss.getX(), enemyBoss.getY(),
+				enemyBoss.getW(), enemyBoss.getH());
+
+			//------------------------------------------------------------------------------------------------
+			//Boss projectile control
+			//------------------------------------------------------------------------------------------------
+			if(booBossProjectile)
+			{
+				short shtR = rand()%255;
+				short shtG = rand()%255;
+				short shtB = rand()%255;
+
+				SolidBrush bruRand(Color(cintFULL_OPACITY, shtR, shtG, shtB));
+				//------------------------------------------------------------------------------------------------
+				//Projectile launch
+				//------------------------------------------------------------------------------------------------
+				graBGBuffer.FillRectangle(&bruRand, bossProjectile.getX(), bossProjectile.getY(),
+					bossProjectile.getH(), bossProjectile.getW());
+
+
+				bossProjectile.setX(bossProjectile.getX() - cintBORDER_PADDING);
+
+				if(bossProjectile.getX() < NULL)
+					booBossProjectile = FALSE;
+
+				//------------------------------------------------------------------------------------------------
+				//Projectile collision
+				//------------------------------------------------------------------------------------------------
+				if(bossProjectile.intersects(rectSprite))
+				{
+					rectSprite.setHealth(rectSprite.getHealth() - 1);
+					rectSprite.setX(rectSprite.getX() - cintBUTTON_LENGTH);
+					rectSprite.setY(rectSprite.getY() - 35);
+					booBossProjectile = FALSE;
+
+					if(rectSprite.getHealth() < 0)
+						PlaySound(soundHit, NULL, SND_ASYNC);
+				}
+
+			}
+
+			//------------------------------------------------------------------------------------------------
+			//Boss Collision
+			//------------------------------------------------------------------------------------------------
+			if(enemyBoss.intersects(rectSprite) && rectSprite.getHealth() != NULL)
+			{
+				rectSprite.setHealth(rectSprite.getHealth() - 1);
+				rectSprite.setX(rectSprite.getX() - cintBUTTON_LENGTH);
+				rectSprite.setY(rectSprite.getY() - 35);
+				booProjectile = FALSE;
+
+				if(rectSprite.getHealth() < 0)
+					PlaySound(soundHit, NULL, SND_ASYNC);
+			}
+		}
+		break;
+
+	case 4:
+		if(booPillar)
+		{
+			//------------------------------------------------------------------------------------------------
+			//Pillar Animation
+			//------------------------------------------------------------------------------------------------
+			graPillarBuffer.Clear(Color(cintFULL_OPACITY, cintFULL_OPACITY, cintFULL_OPACITY, cintFULL_OPACITY));
+
+			pillar.setF(pillar.getF() + 1);
+
+			if(pillar.getF() >= 6)
+				pillar.setF(NULL);
+
+			for(int i = (static_cast<short>(pillar.getF() / 2) * 100); i < (pillar.getF() * 100) + 100; i++)
+			{
+				for(int j = 0; j < 200; j++)
+				{
+					bmpPillarSpriteSheet.GetPixel(i, j, &clrSprite);
+
+					if(clrSprite.GetRed() == cintFULL_OPACITY &&
+						clrSprite.GetGreen() == NULL && clrSprite.GetBlue() == cintFULL_OPACITY)
+						bmpPillar.SetPixel(i - (static_cast<short>(pillar.getF() / 2) * 100), j,
+						Color(1, cintFULL_OPACITY, NULL, cintFULL_OPACITY));
+					else
+						bmpPillar.SetPixel(i - (static_cast<short>(pillar.getF() / 2) * 100), j, clrSprite);
+				}
+			}
+
+			graPillarBuffer.DrawImage(&bmpPillar, NULL, NULL, pillar.getW(), pillar.getH());
+
+			graBGBuffer.DrawImage(&bmpPillarBuffer, pillar.getX(), pillar.getY(),
+				pillar.getW(),pillar.getH());
+
+		}
+		break;
+
+	}
+
+
+	//------------------------------------------------------------------------------------------------
+	//Health and score system
+	//------------------------------------------------------------------------------------------------
+	for(int i = 0; i < rectSprite.getHealth(); i++)
+	{
+		graHealthBuffer.DrawImage(&bmpHealth, (i * 50), NULL);
+	}
+
+	graBGBuffer.DrawImage(&bmpHealthBuffer, cintPADDING, cintPADDING);
+
+	graBGBuffer.DrawString(szScore, -1, &fntScore, pntUpperLeft,  &bruScore);
+
+
+
+	//------------------------------------------------------------------------------------------------
+	//Ground and draw buffers to screen
+	//------------------------------------------------------------------------------------------------
+	graBGBuffer.DrawRectangle(&penGround, ground.getX(), ground.getY(),
+		ground.getW(), ground.getH());
+
+	graCanvas.DrawImage(&bmpBGBuffer, NULL, NULL);
+}

@@ -1,0 +1,18 @@
+﻿Build started 3/18/2015 1:05:18 PM.
+     1>Project "C:\Users\Kevin\Documents\Visual Studio 2012\Projects\CS 161 Lab 4 Alpha\CS 161 Lab 4 Alpha.vcxproj" on node 2 (Build target(s)).
+     1>ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\CL.exe /c /Zi /nologo /W3 /WX- /sdl /O2 /Oi /Oy- /GL /D _MBCS /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Release\\" /Fd"Release\vc110.pdb" /Gd /TP /analyze- /errorReport:prompt BrightNewWorld.cpp
+         BrightNewWorld.cpp
+     1>c:\users\kevin\documents\visual studio 2012\projects\cs 161 lab 4 alpha\Graphics.h(49): warning C4244: 'argument' : conversion from 'LONG' to 'Gdiplus::REAL', possible loss of data
+     1>c:\users\kevin\documents\visual studio 2012\projects\cs 161 lab 4 alpha\Graphics.h(50): warning C4244: 'argument' : conversion from 'LONG' to 'Gdiplus::REAL', possible loss of data
+     1>c:\users\kevin\documents\visual studio 2012\projects\cs 161 lab 4 alpha\Graphics.h(478): warning C4244: 'argument' : conversion from 'short' to 'BYTE', possible loss of data
+       Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Kevin\Documents\Visual Studio 2012\Projects\CS 161 Lab 4 Alpha\Release\CS 161 Lab 4 Alpha.exe" /NOLOGO winmm.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\Kevin\Documents\Visual Studio 2012\Projects\CS 161 Lab 4 Alpha\Release\CS 161 Lab 4 Alpha.pdb" /OPT:REF /OPT:ICF /LTCG /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\Kevin\Documents\Visual Studio 2012\Projects\CS 161 Lab 4 Alpha\Release\CS 161 Lab 4 Alpha.lib" /MACHINE:X86 /SAFESEH Release\BrightNewWorld.obj
+         Generating code
+         Finished generating code
+         CS 161 Lab 4 Alpha.vcxproj -> C:\Users\Kevin\Documents\Visual Studio 2012\Projects\CS 161 Lab 4 Alpha\Release\CS 161 Lab 4 Alpha.exe
+     1>Done Building Project "C:\Users\Kevin\Documents\Visual Studio 2012\Projects\CS 161 Lab 4 Alpha\CS 161 Lab 4 Alpha.vcxproj" (Build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:05.23
