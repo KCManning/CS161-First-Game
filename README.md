@@ -7,3 +7,8 @@ My very first game, written in a weekend for the final project in my introductio
 
 While I've come a long way from here (such as not putting game logic inside of the draw loop!),
 it's always good to have a frame of reference for where you first began.
+
+Team Members:
+Josh Manion, & Lazarus Logan (Designs and Logic)
+Abraham Nunez (Art)
+Kevin Manning (Code and Design(
