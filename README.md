@@ -10,5 +10,7 @@ it's always good to have a frame of reference for where you first began.
 
 Team Members:
 Josh Manion, & Lazarus Logan (Designs and Logic)
+
 Abraham Nunez (Art)
-Kevin Manning (Code and Design(
+
+Kevin Manning (Code and Design)
